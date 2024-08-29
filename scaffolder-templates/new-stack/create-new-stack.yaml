@@ -1,0 +1,111 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: new-stack
+  title: Standard Terraspace Stack
+  description: PR to create Terraspace Stack
+  tags: 
+   - infrastructure
+   - terraspace
+   - aws
+  links: 
+    - title: Documentation
+      url: https://backstage.io/docs/features/software-templates
+      icon: docs
+    - title: Source
+      url: https://github.com/sosafe-edson-ribeiro/backstage-templates/scaffolder-templates/new-stack/create-new-stack.yaml
+      icon: github
+spec:
+  owner: guests
+  type: service
+  parameters:
+    - title: New Stack Creation
+      required: 
+        - Environment
+        - StackName
+      properties:
+        Environment:
+          title: Environment
+          type: string
+          description: Name of the environment where you want to create your stack
+          enum:
+            - integration
+            - development
+            - staging    
+            - production 
+            - audit
+            - logarchive
+            - network
+            - shared-services
+            - data-development
+            - data-production
+        
+        StackName:
+          title: New Stack
+          type: string
+          description: Name of the new stack
+        
+        action:
+          title: action
+          type: string
+          description: What action do you want to perform? Create or delete?
+          enum:
+            - plan
+            - up
+            - down
+
+    - title: Choose a Repository Location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Location of the repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+  
+  steps:
+    - id: fetch-base
+      name: Fetching Details from content folder
+      action: fetch:template
+      input:
+        url: ./content # Location of the content directory
+        values:
+          name: ${{ parameters.StackName }}
+    
+    - id: publish
+      name: Publishing Details
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: This repo is to create a new stack ${{ parameters.StackName }} using backstage.
+        repoUrl: ${{ parameters.repoUrl }}
+        repoVisibility: private
+    
+    - id: github-action
+      name: Starting GitHub action
+      action: github:actions:dispatch
+      input:
+        workflowId:  new=workflow_dispatch.yml 
+        repoUrl: 'github.com?repo=ts-hackathon&owner=sosafe-cloud-engineering'
+        branchOrTagName: 'master'
+        workflowInputs:
+          environment: ${{ parameters.Environment }}
+          command: "${{ parameters.action }} ${{ parameters.StackName }} "
+    
+    - id: register
+      name: Registering the new Component 
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/component-info.yaml'
+  
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
