@@ -2,7 +2,9 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: newstack
+  name: ${{ values.StackName | dump }}
+  annotations:
+    github.com/project-slug: sosafe-cloud-engineering/ts-hackathon
 spec:
   type: newstack
   lifecycle: experimental

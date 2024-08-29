@@ -19,6 +19,7 @@ metadata:
 spec:
   owner: guests
   type: service
+
   parameters:
     - title: New Stack Creation
       required: 
@@ -54,7 +55,6 @@ spec:
             - plan
             - up
             - down
-
     - title: Choose a Repository Location
       required:
         - repoUrl
@@ -69,10 +69,10 @@ spec:
   
   steps:
     - id: fetch-base
-      name: Fetching Details from content folder
+      name: Fetching Details from template folder
       action: fetch:template
       input:
-        url: ./content # Location of the content directory
+        url: ./template # Location of the template directory
         values:
           name: ${{ parameters.StackName }}
     
@@ -89,7 +89,7 @@ spec:
       name: Starting GitHub action
       action: github:actions:dispatch
       input:
-        workflowId:  new=workflow_dispatch.yml 
+        workflowId: workflow_dispatch.yml 
         repoUrl: 'github.com?repo=ts-hackathon&owner=sosafe-cloud-engineering'
         branchOrTagName: 'master'
         workflowInputs:
@@ -101,7 +101,7 @@ spec:
       action: catalog:register
       input:
         repoContentsUrl: ${{steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath: '/component-info.yaml'
+        catalogInfoPath: '/catalog-info.yaml'
   
   output:
     links:
