@@ -1,7 +1,8 @@
+---
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: ${{values.StackName | dump}}
+  name: ${{ values.StackName }}
 spec:
   type: newstack
   lifecycle: experimental
